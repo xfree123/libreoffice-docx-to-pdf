@@ -3,4 +3,4 @@ test*
 *.log
 venv
 venv*
-venv/
+venv/run2.py
