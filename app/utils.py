@@ -10,7 +10,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 logger = logging.getLogger(__name__)
-time_logger = logger  # dùng cùng logger để đảm bảo hiển thị khi chưa cấu hình logger riêng
+time_logger = logger  
 
 SUPPORTED_EXTENSIONS = {"doc", "docx", "xls", "xlsx", "ppt", "pptx"}
 
@@ -82,7 +82,7 @@ def convert_office_to_pdf(input_path: str, timeout: int = 120) -> str:
         )
 
         if not os.path.exists(output_path):
-            # đôi khi soffice đổi tên file; tìm file pdf trong outdir
+            
             candidates = [f for f in os.listdir(outdir) if f.lower().endswith(".pdf")]
             if candidates:
                 output_path = os.path.join(outdir, candidates[0])
@@ -96,12 +96,12 @@ def convert_office_to_pdf(input_path: str, timeout: int = 120) -> str:
         raise RuntimeError("Conversion timed out") from e
 
     finally:
-        # chỉ cleanup profile; không xóa outdir vì caller (routes) sẽ gửi/xóa file output
+        
         shutil.rmtree(lo_profile_dir, ignore_errors=True)
 
 
 def download_file(url, filename="document", timeout=(5, 30), max_retries=3):
-    # tạo tên file an toàn trong temp dir, giữ phần mở rộng nếu có
+    
     parsed = requests.utils.urlparse(url)
     raw_name = os.path.basename(parsed.path) or filename
     _, ext = os.path.splitext(raw_name)

@@ -4,7 +4,6 @@ import tempfile
 import os
 import time
 from werkzeug.utils import secure_filename
-from concurrent.futures import ThreadPoolExecutor
 import logging
 from urllib.parse import urlparse, unquote
 
@@ -44,6 +43,7 @@ def convert():
                 file.save(temp_input.name)
                 temp_input_path = temp_input.name
 
+        # 'ms' (raw byte stream) method removed — accept only file uploads or URL
         elif method == "ms":
             file_bytes = request.data
             ext = request.form.get("ext", "docx").lower()
@@ -54,15 +54,9 @@ def convert():
             if ext not in ALLOWED_EXTENSIONS:
                 return jsonify({"error": "Invalid file format"}), 400
 
-            # try to get a filename from form, fallback to document.<ext>
-            provided_name = request.form.get("filename") or f"document.{ext}"
-            filename = secure_filename(provided_name)
-            original_filename = filename
-
             with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as temp_input:
                 temp_input.write(file_bytes)
                 temp_input_path = temp_input.name
-
         elif method == "url":
             file_url = request.form.get("fileUrl")
             if not file_url:
@@ -87,12 +81,11 @@ def convert():
         if not temp_input_path or not os.path.exists(temp_input_path):
             return jsonify({"error": "Input file not available"}), 400
 
-        # gọi trực tiếp (submit().result() là đồng bộ nên executor không cần thiết)
         temp_output_path = convert_office_to_pdf(temp_input_path)
 
         if not temp_output_path or not os.path.exists(temp_output_path):
             return jsonify({"error": "Conversion failed: output missing"}), 500
-
+        # Cleanup handled in after_this_request
         @after_this_request
         def cleanup(response):
             try:

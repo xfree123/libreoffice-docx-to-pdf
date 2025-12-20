@@ -4,3 +4,7 @@ test*
 venv
 venv*
 venv/run2.py
+.venv/
+.vscode/
+.idea/
+run2.py
